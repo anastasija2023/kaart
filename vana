@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Karte von Berlin</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <style>
+        body, html {height: 100%; margin: 0;}
+        #map {height: 90%; width: 100%;}
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <button onclick="toggleLandmarks()">Sehenswürdigkeiten anzeigen/verbergen</button>
+        <button onclick="toggleMetro()">U-Bahn-Stationen anzeigen/verbergen</button>
+    </div>
+    <div id="map"></div>
+
+    <script>
+        // Создаем карту Берлина
+        var map = L.map('map').setView([52.5200, 13.4050], 12);
+
+        // Добавляем базовый слой карты (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Маркеры для достопримечательностей
+        var landmarks = [
+            {lat: 52.516275, lng: 13.377704, name: "Brandenburger Tor"},
+            {lat: 52.520006, lng: 13.404954, name: "Berliner Fernsehturm"},
+            {lat: 52.519444, lng: 13.406111, name: "Alexanderplatz"},
+            {lat: 52.514091, lng: 13.393343, name: "Potsdamer Platz"},
+            {lat: 52.518623, lng: 13.376198, name: "Reichstagsgebaude"},
+            {lat: 52.507711, lng: 13.390361, name: "Checkpoint Charlie"},
+            {lat: 52.531677, lng: 13.381777, name: "Naturkundemuseum"},
+            {lat: 52.507452, lng: 13.399608, name: "Deutsches Historisches Museum"},
+            {lat: 52.518503, lng: 13.375768, name: "Denkmal fur die ermordeten Juden Europas"},
+            {lat: 52.509665, lng: 13.375501, name: "Siegessaule"},
+            {lat: 52.500635, lng: 13.356924, name: "Schloss Charlottenburg"},
+            {lat: 52.508605, lng: 13.399322, name: "Berliner Dom"},
+            {lat: 52.512463, lng: 13.454224, name: "East Side Gallery"},
+            {lat: 52.496931, lng: 13.421892, name: "Treptower Park"},
+            {lat: 52.516279, lng: 13.378052, name: "Pariser Platz"},
+            {lat: 52.505019, lng: 13.369611, name: "Zoologischer Garten"},
+            {lat: 52.514697, lng: 13.398255, name: "Museumsinsel"},
+            {lat: 52.475833, lng: 13.431111, name: "Tempelhofer Feld"},
+            {lat: 52.492638, lng: 13.399169, name: "Gedenkstatte Berliner Mauer"},
+            {lat: 52.517736, lng: 13.427185, name: "Oberbaumbrucke"}
+        ];
+
+        // Маркеры для станций метро
+        var metroStations = [
+            {lat: 52.521167, lng: 13.413197, name: "U-Bhf Alexanderplatz"},
+    {lat: 52.514312, lng: 13.349055, name: "U-Bhf Zoologischer Garten"},
+    {lat: 52.508743, lng: 13.375853, name: "U-Bhf Potsdamer Platz"},
+    {lat: 52.517209, lng: 13.402981, name: "U-Bhf Friedrichstraße"},
+    {lat: 52.525733, lng: 13.369945, name: "U-Bhf Hauptbahnhof"},
+    {lat: 52.498011, lng: 13.356319, name: "U-Bhf Charlottenburg"},
+    {lat: 52.503662, lng: 13.338283, name: "U-Bhf Ernst-Reuter-Platz"},
+    {lat: 52.523209, lng: 13.299418, name: "U-Bhf Spandau"},
+    {lat: 52.485357, lng: 13.422058, name: "U-Bhf Neukölln"},
+    {lat: 52.476128, lng: 13.365442, name: "U-Bhf Tempelhof"},
+    {lat: 52.542579, lng: 13.349232, name: "U-Bhf Seestraße"},
+    {lat: 52.521920, lng: 13.369671, name: "U-Bhf Oranienburger Tor"},
+    {lat: 52.530262, lng: 13.400571, name: "U-Bhf Rosenthaler Platz"},
+    {lat: 52.535680, lng: 13.381898, name: "U-Bhf Bernauer Straße"},
+    {lat: 52.551348, lng: 13.392233, name: "U-Bhf Gesundbrunnen"},
+    {lat: 52.525744, lng: 13.406066, name: "U-Bhf Schönhauser Allee"},
+    {lat: 52.536874, lng: 13.421951, name: "U-Bhf Vinetastraße"},
+    {lat: 52.540539, lng: 13.445353, name: "U-Bhf Pankow"},
+    {lat: 52.513727, lng: 13.466950, name: "U-Bhf Frankfurter Allee"},
+    {lat: 52.529346, lng: 13.403269, name: "U-Bhf Senefelderplatz"},
+    {lat: 52.533696, lng: 13.424615, name: "U-Bhf Eberswalder Straße"},
+    {lat: 52.516056, lng: 13.409027, name: "U-Bhf Jannowitzbrücke"},
+    {lat: 52.511579, lng: 13.405251, name: "U-Bhf Heinrich-Heine-Straße"},
+    {lat: 52.509605, lng: 13.425960, name: "U-Bhf Schlesisches Tor"},
+    {lat: 52.510999, lng: 13.434637, name: "U-Bhf Warschauer Straße"},
+    {lat: 52.518375, lng: 13.389690, name: "U-Bhf Stadtmitte"},
+    {lat: 52.502361, lng: 13.369327, name: "U-Bhf Nollendorfplatz"},
+    {lat: 52.495444, lng: 13.436507, name: "U-Bhf Hermannplatz"},
+    {lat: 52.504763, lng: 13.394979, name: "U-Bhf Möckernbrücke"},
+    {lat: 52.504007, lng: 13.389848, name: "U-Bhf Hallesches Tor"},
+    {lat: 52.497070, lng: 13.378503, name: "U-Bhf Mehringdamm"},
+    {lat: 52.492209, lng: 13.388909, name: "U-Bhf Südstern"},
+    {lat: 52.484859, lng: 13.432196, name: "U-Bhf Hermannstraße"},
+    {lat: 52.494777, lng: 13.387749, name: "U-Bhf Gneisenaustraße"},
+    {lat: 52.489231, lng: 13.424925, name: "U-Bhf Leinestraße"},
+    {lat: 52.482449, lng: 13.437583, name: "U-Bhf Boddinstraße"},
+    {lat: 52.473530, lng: 13.449265, name: "U-Bhf Rathaus Neukölln"},
+    {lat: 52.473109, lng: 13.458337, name: "U-Bhf Karl-Marx-Straße"},
+    {lat: 52.466880, lng: 13.447170, name: "U-Bhf Grenzallee"},
+    {lat: 52.455664, lng: 13.452278, name: "U-Bhf Blaschkoallee"},
+    {lat: 52.445673, lng: 13.455808, name: "U-Bhf Parchimer Allee"},
+    {lat: 52.435269, lng: 13.459569, name: "U-Bhf Britz-Süd"},
+    {lat: 52.423569, lng: 13.462187, name: "U-Bhf Johannisthaler Chaussee"},
+    {lat: 52.414360, lng: 13.465376, name: "U-Bhf Lipschitzallee"},
+    {lat: 52.404122, lng: 13.467680, name: "U-Bhf Wutzkyallee"},
+    {lat: 52.395243, lng: 13.471197, name: "U-Bhf Zwickauer Damm"},
+    {lat: 52.388332, lng: 13.479206, name: "U-Bhf Rudow"},
+    {lat: 52.477523, lng: 13.431934, name: "U-Bhf Südstern"},
+    {lat: 52.522312, lng: 13.387554, name: "U-Bhf Naturkundemuseum"},
+    {lat: 52.491283, lng: 13.351159, name: "U-Bhf Bülowstraße"},
+    {lat: 52.486732, lng: 13.344678, name: "U-Bhf Kurfürstenstraße"},
+    {lat: 52.481029, lng: 13.331543, name: "U-Bhf Gleisdreieck"},
+    {lat: 52.478080, lng: 13.370860, name: "U-Bhf Möckernbrücke"},
+    {lat: 52.472305, lng: 13.374596, name: "U-Bhf Mehringdamm"},
+    {lat: 52.465889, lng: 13.378674, name: "U-Bhf Platz der Luftbrücke"},
+    {lat: 52.460152, lng: 13.383159, name: "U-Bhf Paradestraße"},
+    {lat: 52.455330, lng: 13.387125, name: "U-Bhf Tempelhof"},
+    {lat: 52.446639, lng: 13.390712, name: "U-Bhf Alt-Tempelhof"},
+    {lat: 52.435970, lng: 13.394013, name: "U-Bhf Kaiserin-Augusta-Straße"},
+    {lat: 52.426090, lng: 13.397616, name: "U-Bhf Ullsteinstraße"},
+    {lat: 52.417379, lng: 13.400561, name: "U-Bhf Westphalweg"},
+    {lat: 52.408786, lng: 13.404287, name: "U-Bhf Alt-Mariendorf"},
+    {lat: 52.509059, lng: 13.379641, name: "U-Bhf Märkisches Museum"},
+    {lat: 52.515312, lng: 13.374715, name: "U-Bhf Französische Straße"},
+    {lat: 52.489776, lng: 13.445369, name: "U-Bhf Karl-Marx-Straße"},
+    {lat: 52.483339, lng: 13.446617, name: "U-Bhf Hermannstraße"}
+        ];
+
+        var landmarkMarkers = [];
+        var metroMarkers = [];
+
+        // Функция для создания маркеров для достопримечательностей
+        function toggleLandmarks() {
+            if (landmarkMarkers.length === 0) {
+                // Добавляем маркеры
+                landmarks.forEach(function(landmark) {
+                    var marker = L.marker([landmark.lat, landmark.lng])
+                        .bindTooltip(landmark.name + " (" + landmark.lat + ", " + landmark.lng + ")")
+                        .addTo(map);
+                    landmarkMarkers.push(marker);
+                });
+            } else {
+                // Удаляем маркеры
+                landmarkMarkers.forEach(function(marker) {
+                    map.removeLayer(marker);
+                });
+                landmarkMarkers = [];
+            }
+        }
+
+        function toggleMetro() {
+            if (metroMarkers.length === 0) {
+                // Добавляем маркеры
+                metroStations.forEach(function(station) {
+                    var marker = L.marker([station.lat, station.lng])
+                        .bindTooltip(station.name + " (" + station.lat + ", " + station.lng + ")")
+                        .addTo(map);
+                    metroMarkers.push(marker);
+                });
+            } else {
+                // Удаляем маркеры
+                metroMarkers.forEach(function(marker) {
+                    map.removeLayer(marker);
+                });
+                metroMarkers = [];
+            }
+        }
+    </script>
+</body>
+</html>
